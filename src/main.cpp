@@ -138,6 +138,12 @@ struct server
 		: io_service_(io_service)
 		, acceptor_(io_service_, endpoint)
 	{
+		std::cout << esc(MAKE_GREEN)
+			<< LOG_HEADER
+			<< "Echo server is listening on port: "
+			<< endpoint.port()
+			<< esc(RESET_COLOR)
+			<< std::endl;
 		start_accept();
 	}
 	void start_accept()
