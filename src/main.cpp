@@ -3,11 +3,13 @@
 #include <boost/ref.hpp>
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
+#include <signal.h>
 #include <unistd.h>
 
 #define RESET_COLOR "\e[m"
 #define MAKE_GREEN "\e[32m"
 #define MAKE_YELLOW "\e[33m"
+#define MAKE_RED "\e[31m"
 
 const char * esc(const char * code)
 {
@@ -32,6 +34,10 @@ struct echo_handler
 		echo_timer_.expires_from_now(boost::posix_time::seconds(1));
 		echo_timer_.async_wait(boost::bind(&echo_handler::operator(), this, boost::asio::placeholders::error()));
 	}
+	void stop()
+	{
+		echo_timer_.cancel();
+	}
 	void operator()(const boost::system::error_code & ec)
 	{
 		if (ec == boost::asio::error::operation_aborted)
@@ -43,11 +49,30 @@ struct echo_handler
 	}
 };
 
+struct application
+{
+	boost::asio::io_service & io_service_;
+	echo_handler echo_service_;
+	boost::asio::signal_set signals_;
+	application(boost::asio::io_service & io_service)
+		: io_service_(io_service)
+		, echo_service_(io_service_)
+		, signals_(io_service_, SIGINT)
+	{
+		echo_service_.start();
+		signals_.async_wait(boost::bind(&application::operator(), this, boost::asio::placeholders::error(), _2));
+	}
+	void operator()(const boost::system::error_code & ec, int signal_number)
+	{
+		std::cerr << esc(MAKE_RED) << "SIGINT received. Exiting!" << esc(RESET_COLOR) << std::endl;
+		echo_service_.stop();
+	}
+};
+
 int
 main(int argc, char * argv[])
 {
 	boost::asio::io_service io_service;
-	echo_handler echo_service(io_service);
-	echo_service.start();
+	application app(io_service);
 	io_service.run();
 }
