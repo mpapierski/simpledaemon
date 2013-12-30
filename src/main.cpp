@@ -12,6 +12,7 @@
 #include <signal.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "build_info.hpp"
 
 #define RESET_COLOR "\e[m"
 #define MAKE_GREEN "\e[32m"
@@ -213,7 +214,8 @@ main(int argc, char * argv[])
 	}
 	if (vm.count("version"))
 	{
-		std::cout << "version: 123" << std::endl;
+		std::cout << "build: " BUILD_INFO_DATE << std::endl;
+		std::cout << "version: " BUILD_INFO_COMMIT << std::endl;
 		return 0;
 	}
 	boost::asio::io_service io_service;
