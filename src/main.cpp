@@ -165,6 +165,14 @@ struct server
 	{
 		if (!error)
 		{
+			boost::asio::ip::tcp::endpoint remote_endpoint =
+				session_ptr->socket_.remote_endpoint();
+			boost::asio::ip::address remote_addr = remote_endpoint.address();
+			std::cout << esc(MAKE_GREEN)
+				<< LOG_HEADER
+				<< "New client connected (" << remote_addr.to_string() << ")"
+				<< esc(RESET_COLOR)
+				<< std::endl;
 			session_ptr->start();
 		}
 		start_accept();
