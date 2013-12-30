@@ -4,12 +4,15 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <signal.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #define RESET_COLOR "\e[m"
 #define MAKE_GREEN "\e[32m"
 #define MAKE_YELLOW "\e[33m"
 #define MAKE_RED "\e[31m"
+
+#define LOG_HEADER '[' << ::getpid() << "] "
 
 const char * esc(const char * code)
 {
@@ -44,7 +47,11 @@ struct echo_handler
 		{
 			return;
 		}
-		std::cout << esc(counter_ % 2 == 0 ? MAKE_GREEN : MAKE_YELLOW) << (++counter_) << ". Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." << esc(RESET_COLOR) << std::endl;
+		std::cout << esc(counter_ % 2 == 0 ? MAKE_GREEN : MAKE_YELLOW)
+			<< LOG_HEADER
+			<< (++counter_)
+			<< ". Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." 			<< esc(RESET_COLOR)
+			<< std::endl;
 		start();
 	}
 };
@@ -64,7 +71,7 @@ struct application
 	}
 	void operator()(const boost::system::error_code & ec, int signal_number)
 	{
-		std::cerr << esc(MAKE_RED) << "SIGINT received. Exiting!" << esc(RESET_COLOR) << std::endl;
+		std::cerr << esc(MAKE_RED) << LOG_HEADER << "SIGINT received. Exiting!" << esc(RESET_COLOR) << std::endl;
 		echo_service_.stop();
 	}
 };
