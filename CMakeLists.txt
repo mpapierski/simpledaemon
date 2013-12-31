@@ -33,7 +33,7 @@ add_custom_target (docker
 	COMMAND cpack -G DEB .
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/Dockerfile ${CMAKE_CURRENT_BINARY_DIR}/Dockerfile
 	COMMAND /usr/bin/docker rmi simpledaemon || /bin/true
-	COMMAND /usr/bin/docker build -t simpledaemon ${CMAKE_CURRENT_BINARY_DIR})
+	COMMAND /usr/bin/docker build -rm -t simpledaemon ${CMAKE_CURRENT_BINARY_DIR})
 
 # Packaging
 set (CPACK_PACKAGE_CONTACT "michal@papierski.net")
