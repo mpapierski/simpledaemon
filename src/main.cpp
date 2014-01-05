@@ -188,7 +188,7 @@ struct application
 	application(boost::asio::io_service & io_service, short port)
 		: io_service_(io_service)
 		, echo_service_(io_service_)
-		, signals_(io_service_, SIGINT)
+		, signals_(io_service_, SIGTERM, SIGINT)
 		, server_(io_service_, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
 	{
 		echo_service_.start();
@@ -196,7 +196,20 @@ struct application
 	}
 	void operator()(const boost::system::error_code & ec, int signal_number)
 	{
-		std::cerr << esc(MAKE_RED) << LOG_HEADER << "SIGINT received. Exiting!" << esc(RESET_COLOR) << std::endl;
+		std::string signal_name;
+		switch (signal_number)
+		{
+		case SIGINT:
+			signal_name = "SIGINT";
+			break;
+		case SIGTERM:
+			signal_name = "SIGTERM";
+			break;
+		default:
+			signal_name = "Unknown signal";
+			break;
+		}
+		std::cerr << esc(MAKE_RED) << LOG_HEADER << signal_name << " received. Exiting!" << esc(RESET_COLOR) << std::endl;
 		io_service_.stop();
 	}
 };
