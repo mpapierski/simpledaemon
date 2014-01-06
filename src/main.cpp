@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <set>
+#include <fstream>
 #include <boost/ref.hpp>
 #include <boost/bind.hpp>
 #include <boost/array.hpp>
@@ -18,6 +19,7 @@
 #define MAKE_GREEN "\e[32m"
 #define MAKE_YELLOW "\e[33m"
 #define MAKE_RED "\e[31m"
+#define MAKE_BLUE "\e[34m"
 
 #define LOG_HEADER '[' << ::getpid() << "] "
 
@@ -185,14 +187,44 @@ struct application
 	echo_handler echo_service_;
 	boost::asio::signal_set signals_;
 	server server_;
+	boost::asio::deadline_timer motd_timer_;
 	application(boost::asio::io_service & io_service, short port)
 		: io_service_(io_service)
 		, echo_service_(io_service_)
 		, signals_(io_service_, SIGTERM, SIGINT)
 		, server_(io_service_, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port))
+		, motd_timer_(io_service_)
 	{
 		echo_service_.start();
 		signals_.async_wait(boost::bind(&application::operator(), this, boost::asio::placeholders::error(), _2));
+		start_motd_timer();
+	}
+	void start_motd_timer()
+	{
+		motd_timer_.expires_from_now(boost::posix_time::seconds(5));
+		motd_timer_.async_wait(boost::bind(&application::handle_motd, this,
+			boost::asio::placeholders::error));
+	}
+	void handle_motd(const boost::system::error_code & ec)
+	{
+		std::ifstream ifs("motd.txt", std::ios::binary);
+		if (!ifs.is_open())
+		{
+			std::cerr << esc(MAKE_RED) << LOG_HEADER
+				<< "Unable to read MOTD. motd.txt file not found!"
+				<< esc(RESET_COLOR)
+				<< std::endl;
+			return;
+		}
+		std::string line;
+		while (std::getline(ifs, line))
+		{
+			std::cout << esc(MAKE_BLUE) << LOG_HEADER
+				<< "MOTD: " << line
+				<< esc(RESET_COLOR)
+				<< std::endl;
+		}
+		start_motd_timer();
 	}
 	void operator()(const boost::system::error_code & ec, int signal_number)
 	{
