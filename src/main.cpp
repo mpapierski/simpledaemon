@@ -61,9 +61,10 @@ struct echo_handler
 				<< std::endl;
 			return;
 		}
+		++counter_;
 		std::cout << esc(counter_ % 2 == 0 ? MAKE_GREEN : MAKE_YELLOW)
 			<< LOG_HEADER
-			<< (++counter_)
+			<< counter_
 			<< ". Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua." 			<< esc(RESET_COLOR)
 			<< std::endl;
 		start();
