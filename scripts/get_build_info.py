@@ -1,6 +1,9 @@
 import uuid
 import sys
 import subprocess
+import datetime
+import time
+from email import utils
 
 _, output = sys.argv
 
@@ -9,8 +12,14 @@ guid = str(uuid.uuid4()).replace('-', '_')
 guard = 'BUILD_INFO_{0}'.format(guid)
 
 # Get current date with timezone
-stdout = subprocess.check_output(['/bin/date', '-R'])
-build_date = stdout.strip()
+try:
+  stdout = subprocess.check_output(['/bin/date', '-R'], stderr=subprocess.PIPE)
+  build_date = stdout.strip()
+except subprocess.CalledProcessError:
+  nowdt = datetime.datetime.now()
+  nowtuple = nowdt.timetuple()
+  nowtimestamp = time.mktime(nowtuple)
+  build_date = utils.formatdate(nowtimestamp)
 
 # Get repo info
 stdout = subprocess.check_output(['/usr/bin/git', 'rev-parse', 'HEAD'])
